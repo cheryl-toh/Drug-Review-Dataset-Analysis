@@ -52,5 +52,5 @@ SentimentAnalysisMain <- function(csvFilePath) {
 }
 
 # Example usage
-csvFilePath <- "./fullData.csv"
+csvFilePath <- "./data.csv"
 SentimentAnalysisMain(csvFilePath)
