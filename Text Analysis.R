@@ -100,13 +100,13 @@ TextAnalysis <-
               # Count number of times words are mentioned in ratings (more than 100 times)
               words_count <- data %>%
                 count(word, name = "num_mentions") %>%
-                filter(num_mentions > 100)
+                filter(num_mentions >= 200)
               
               # Get correlation between words (more than 0.8 correlation)
               word_correlation <- data %>%
                 semi_join(words_count, by = "word") %>%
                 pairwise_cor(item = word, feature = rating) %>%
-                filter(correlation >= 0.8)
+                filter(correlation >= 0.5)
 
               # Create a network from the word_correlation data
               word_graph <- graph_from_data_frame(word_correlation, 
@@ -115,7 +115,7 @@ TextAnalysis <-
                 ggraph(layout = "fr") +
                 geom_edge_link(aes(alpha = correlation)) +
                 geom_node_point() +
-                geom_node_text(aes(color = num_mentions, label = name), repel = TRUE, max.overlaps = Inf, box.padding = 0.5, point.padding = 0.3, nudge_x = 0.1)
+                geom_node_text(aes(color = num_mentions, label = name), repel = TRUE)
             
               # Save the graph as a PNG file
               ggsave("word_network_graph.png", word_graph)
@@ -134,10 +134,67 @@ TextAnalysis <-
             },
             
             
-            # Generic Function 4: Preparation for Sentiment Analysis
+            # Generic Function 5: Preparation for Sentiment Analysis
             prepareForSentimentAnalysis = function(data) {
-              # Implement preparation logic for sentiment analysis here
-              # find words that represents positive or negative review for sentiment analysis
+              # Filter data for positive ratings (rating > 5) and negative ratings (rating <= 5)
+              positive_data <- data %>%
+                filter(rating > 5)
+              
+              negative_data <- data %>%
+                filter(rating <= 5)
+              
+              # Count number of times words are mentioned in positive ratings
+              positive_counts <- positive_data %>%
+                count(word, name = "positive_mentions") %>%
+                filter(positive_mentions >= 100)  # Adjust the threshold as needed
+              
+              # Get correlation between words in positive ratings (more than 0.5 correlation)
+              positive_correlation <- positive_data %>%
+                semi_join(positive_counts, by = "word") %>%
+                pairwise_cor(item = word, feature = rating) %>%
+                filter(correlation >= 0.8)
+              
+              # Create a network from the positive_correlation data
+              positive_word_graph <- graph_from_data_frame(positive_correlation, 
+                                                           vertices = positive_counts %>%
+                                                             semi_join(positive_correlation, by = c("word" = "item1"))) %>%
+                ggraph(layout = "fr") +
+                geom_edge_link(aes(alpha = correlation)) +
+                geom_node_point() +
+                geom_node_text(aes(color = positive_mentions, label = name), repel = TRUE)
+              
+              # Save the positive word correlation graph as a PNG file
+              ggsave("positive_word_network_graph.png", positive_word_graph)
+              
+              # View positive word correlation graph
+              print(positive_word_graph)
+              
+              # Count number of times words are mentioned in negative ratings
+              negative_counts <- negative_data %>%
+                count(word, name = "negative_mentions") %>%
+                filter(negative_mentions >= 50)  # Adjust the threshold as needed
+              
+              # Get correlation between words in negative ratings (more than 0.5 correlation)
+              negative_correlation <- negative_data %>%
+                semi_join(negative_counts, by = "word") %>%
+                pairwise_cor(item = word, feature = rating) %>%
+                filter(correlation >= 0.8)
+              
+              # Create a network from the negative_correlation data
+              negative_word_graph <- graph_from_data_frame(negative_correlation, 
+                                                           vertices = negative_counts %>%
+                                                             semi_join(negative_correlation, by = c("word" = "item1"))) %>%
+                ggraph(layout = "fr") +
+                geom_edge_link(aes(alpha = correlation)) +
+                geom_node_point() +
+                geom_node_text(aes(color = negative_mentions, label = name), repel = TRUE)
+              
+              # Save the negative word correlation graph as a PNG file
+              ggsave("negative_word_network_graph.png", negative_word_graph)
+              
+              # View negative word correlation graph
+              print(negative_word_graph)
+              
             }
           )
   )
@@ -163,18 +220,18 @@ TextAnalysisMain <- function(csvFilePath) {
   print("Start Word Frequency Analysis")
   review_word_freq <- ta_instance$wordFrequencyAnalysis(reviews)
   print("Finish Word Frequency Analysis")
-  
+
   # Perform word correlation analysis
   print("Start Word Correlation Analysis")
   ta_instance$wordCorrelationAnalysis(reviews_ratings)
   print("Finish Word Correlation Analysis")
-  
-  
+
+
   # Create Word Clouds
   ta_instance$wordClouds(review_word_freq)
-  
+
   # Prepare data for sentiment analysis
-  sentimentData <- ta_instance$prepareForSentimentAnalysis(cleanedData)
+  ta_instance$prepareForSentimentAnalysis(reviews_ratings)
 }
 
 # Example usage
