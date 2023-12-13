@@ -2,6 +2,7 @@
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(stringr)
 
 # Load Train dataset and Test dataset (.tsv files)
 file_path <- "./Dataset/drugsComTest_raw.tsv"
@@ -15,9 +16,8 @@ test_df <- as.data.frame(test_data)
 print(head(test_df))
 write.csv(test_df, file = "data.csv", row.names = FALSE)
 
-
 # Plot graph 1 (Observation 1)
-# Assuming your data is stored in a data frame named 'data'
+
 # Create a new data frame with the average rating for each drug
 average_rating_per_drug <- test_df %>%
   group_by(drugName) %>%
@@ -37,16 +37,10 @@ ggsave("average_rating_histogram.png", histogram_plot)
 # View the plot
 print(histogram_plot)
 
-
 # Plot graph 2 (Observation 2)
 # Install or update the required packages
-#install.packages(c("readr", "dplyr", "ggplot2", "stringr"), dependencies = TRUE)
 
-# Load required libraries
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(stringr)
+
 
 # Load Test dataset (.tsv file)
 file_path <- "./Dataset/drugsComTest_raw.tsv"
@@ -74,6 +68,3 @@ word_count_plot <- ggplot(test_df, aes(x = cut(words_count, breaks = seq(0, 200,
 # Print the plot
 print(word_count_plot)
 
-# Plot graph 3 (Observation 3)
-
-# Plot graph 4 (Observation 4)
