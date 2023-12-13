@@ -12,8 +12,6 @@ SentimentAnalysis <-
             
             # Generic Function 1: Data Pre-processing
             preprocessData = function(data) {
-              # reading the csv file
-              data <- read_csv("data.csv")
               
               # creating new dataset for sentiment
               senti_data <- data
@@ -101,6 +99,8 @@ SentimentAnalysis <-
               
               # setting date variable
               senti_data$date <- as.Date(senti_data$date, format = "%B %d, %Y")
+              
+              return(senti_data)
             },
             
             
@@ -124,13 +124,15 @@ SentimentAnalysis <-
 # Main Class for loading data from CSV file and calling functions in the SentimentAnalysis class
 SentimentAnalysisMain <- function(csvFilePath) {
   # Load data from CSV file
-  data <- read.csv()
+  data <- read.csv(csvFilePath)
   
   # Create an instance of the SentimentAnalysis class
   sa_instance <- SentimentAnalysis$new()
   
   # Perform data pre-processing
   preprocessedData <- sa_instance$preprocessData(data)
+  
+  print(head(preprocessedData))
   
   # Perform sentiment analysis
   sentimentResults <- sa_instance$performSentimentAnalysis(preprocessedData)
