@@ -38,20 +38,6 @@ ggsave("average_rating_histogram.png", histogram_plot)
 print(histogram_plot)
 
 # Plot graph 2 (Observation 2)
-# Install or update the required packages
-
-
-
-# Load Test dataset (.tsv file)
-file_path <- "./Dataset/drugsComTest_raw.tsv"
-test_data <- read_tsv(file_path)
-
-# Convert .tsv files into .csv file or DATAFRAME
-test_df <- as.data.frame(test_data)
-
-# Print the dimensions of the data frame
-print(head(test_df))
-
 # Count words in the reviews column and create a new column with the counts (up to 200 words)
 test_df <- test_df %>%
   mutate(words_count = pmin(str_count(review, "\\S+"), 200))  # Consider up to 200 words
@@ -67,4 +53,6 @@ word_count_plot <- ggplot(test_df, aes(x = cut(words_count, breaks = seq(0, 200,
 
 # Print the plot
 print(word_count_plot)
+
+ggsave("Word count distribution.png", word_count_plot)
 
