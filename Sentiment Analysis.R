@@ -5,8 +5,10 @@ library(stringr)
 library(ggplot2)
 library(SentimentAnalysis)
 library(ggplot2)
-library(usethis) 
-usethis::edit_r_environ() # must set R_MAX_VSIZE=100Gb
+library(data.table)
+
+# library(usethis)
+# usethis::edit_r_environ() # must set R_MAX_VSIZE=100Gb
 
 # Sentiment Analysis Class
 SentimentAnalysis <- 
@@ -16,10 +18,19 @@ SentimentAnalysis <-
           public = list( 
             
             # Generic Function 1: Data Pre-processing
-            preprocessData = function(data) {
+            preprocessData = function(data, sample_size = 10000) {
               
-              # creating new dataset for sentiment
-              senti_data <- data
+              print("Start preprocessing")
+              
+              # Convert data to data.table for efficient operations
+              # Take a random sample of the data
+              sampled_data <- data[sample(1:nrow(data), sample_size), ]
+              
+              # Convert data to data.table for efficient operations
+              senti_data <- as.data.table(sampled_data)
+              
+              # Only keep necessary columns
+              senti_data <- senti_data[, .(review, rating, condition, drugName)]
               
               # data cleaning
               senti_data$review <- HTMLdecode(senti_data$review) #1-2 mins
@@ -102,64 +113,104 @@ SentimentAnalysis <-
               senti_data$condition <- gsub(" / ", "/", senti_data$condition)
               senti_data$condition <- strsplit(senti_data$condition, "/")
               
-              # setting date variable
-              senti_data$date <- as.Date(senti_data$date, format = "%B %d, %Y")
+              print("end preprocessing")
               
               return(senti_data)
             },
             
-            
             # Generic Function 2: Sentiment Analysis
-            performSentimentAnalysis = function(data) {
+            performSentimentAnalysis = function(senti_data) {
+              print("Start Sentiment Analysis")
+              
+              print("evaluating sentiment score")
+              # Subset data to include only necessary columns
+              subset_data <- senti_data[, c("review", "rating", "condition")]
+              
+              # Explicitly remove the original dataset from memory
+              rm(senti_data)
               
               # plotting sentiment score against ratings for correlation
-                senti_score <- senti_data$review
-                senti_rate <- senti_data$rating
-                
-                sentiment <- analyzeSentiment(senti_score) # around 3-4 mins
-                senti_data$score <- sentiment$SentimentQDAP
-                senti_data$score_result <- convertToDirection(sentiment$SentimentQDAP)
-                
-                evaluation <- data.frame(compareToResponse(sentiment, senti_rate)) 
-                senti_corr <- plotSentimentResponse(sentiment$SentimentQDAP, senti_rate)
-                ggsave("senti_corr.png", plot = senti_corr, width = 11, height = 8)
+              senti_score <- subset_data$review
+              senti_rate <- subset_data$rating
               
-              # plotting sentiment scores distribution with conditions
-                top_conditions <- senti_data %>% group_by(condition) %>% summarise(count = n()) %>%
-                  arrange(desc(count)) %>% head(10)
-                
-                senti_top10 <- senti_data %>% filter(condition %in% top_conditions$condition)
-                senti_top10 <- senti_top10 %>% mutate(rounded_score = ifelse(score_result == "positive", ceiling(score),
-                                                                      ifelse(score_result == "negative", floor(score),
-                                                                      ifelse(score_result == "neutral", 0, NA))))
-                
-                senti_histo <-  ggplot(senti_top10, aes(x = score, fill = condition)) +
-                  geom_histogram(binwidth = 0.1, position = "dodge") +
-                  ggtitle("Sentiment Score Distribution by Medical Condition") +
-                  xlab("Sentiment Score") +
-                  ylab("Frequency") +
-                  facet_wrap(~condition, scales = "free_y")
-                
-                senti_box <-  ggplot(senti_top10, aes(x = condition, y = score)) +
-                  geom_boxplot() +
-                  ggtitle("Boxplot of Sentiment Scores by Medical Condition") +
-                  xlab("Condition") +
-                  ylab("Sentiment Score") +
-                  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-                
-                ggsave("senti_histogram.png", plot = senti_histo, width = 11, height = 8)
-                ggsave("senti_boxplot.png", plot = senti_box, width = 11, height = 8)
+              sentiment <- analyzeSentiment(senti_score) # around 3-4 mins
               
+              # Explicitly remove unnecessary variables to free up memory
+              rm(senti_score)
+              
+              subset_data$score <- sentiment$SentimentQDAP
+              subset_data$score_result <- convertToDirection(sentiment$SentimentQDAP)
+              
+              evaluation <- data.frame(compareToResponse(sentiment, senti_rate)) 
+              
+              # Convert the 'condition' column from list to character
+              subset_data$condition <- sapply(subset_data$condition, function(x) paste(x, collapse = "/"))
+              
+              # Save sentiment scores to CSV for descriptive analysis
+              write.csv(subset_data[, c("condition", "score", "score_result")], "sentiment_scores.csv", row.names = FALSE)
+              
+              # Explicitly free up memory
+              gc()
+              
+              return(list(subset_data = subset_data, evaluation = evaluation))
             },
             
             # Generic Function 3: Visualization
-            visualizeResults = function(results) {
-              # Implement visualization logic here
+            visualizeResults = function(sentiment_data) {
+              print("Plotting Sentiment-Ratiing Correlation")
+              senti_corr <- plotSentimentResponse(sentiment_data$score, sentiment_data$rating)
+              ggsave("senti_corr.png", plot = senti_corr, width = 11, height = 8)
+              
+              
+              print("Plotting Sentiment Score by Medical Condition Histogram")
+              # plotting sentiment scores distribution with conditions
+              top_conditions <- sentiment_data %>% group_by(condition) %>% summarise(count = n()) %>%
+                arrange(desc(count)) %>% head(10)
+              
+              senti_top10 <- sentiment_data %>%
+                filter(condition %in% top_conditions$condition) %>%
+                mutate(score_result = factor(score_result, levels = c("positive", "negative", "neutral")),
+                       rounded_score = ifelse(score_result == "positive", ceiling(score),
+                                              ifelse(score_result == "negative", floor(score),
+                                                     ifelse(score_result == "neutral", 0, NA))))
+              
+              # Reorder levels of 'condition' based on the median of 'score'
+              condition_order <- senti_top10 %>%
+                group_by(condition) %>%
+                summarise(median_score = median(score, na.rm = TRUE)) %>%
+                arrange(median_score) %>%
+                pull(condition)
+              
+              senti_top10$condition <- factor(senti_top10$condition, levels = condition_order)
+              
+              senti_histo <- ggplot(senti_top10, aes(x = score, fill = condition)) +
+                geom_histogram(binwidth = 0.1, position = "dodge") +
+                ggtitle("Sentiment Score Distribution by Medical Condition") +
+                xlab("Sentiment Score") +
+                ylab("Frequency") +
+                facet_wrap(~condition, scales = "free_y")
+              
+              print("Plotting Sentiment Score by Medical Condition Boxplot")
+              
+              senti_box <- ggplot(senti_top10, aes(x = condition, y = score)) +
+                geom_boxplot() +
+                ggtitle("Boxplot of Sentiment Scores by Medical Condition") +
+                xlab("Condition") +
+                ylab("Sentiment Score") +
+                theme(axis.text.x = element_text(angle = 45, hjust = 1))
+              
+              ggsave("senti_histogram.png", plot = senti_histo, width = 11, height = 8)
+              ggsave("senti_boxplot.png", plot = senti_box, width = 11, height = 8)
+              
+              
             },
             
             # Generic Function 4: Evaluation
             evaluateResults = function(results) {
               # Implement evaluation logic here
+              # Print the results
+              print("Evaluation Results:")
+              print(results)
             }
           )
   )
@@ -180,11 +231,12 @@ SentimentAnalysisMain <- function(csvFilePath) {
   # Perform sentiment analysis
   sentimentResults <- sa_instance$performSentimentAnalysis(preprocessedData)
   
-  # Visualize the results
-  sa_instance$visualizeResults(sentimentResults)
+  sentiment = sentimentResults$subset_data
+  evaluation = sentimentResults$evaluation
   
+  sa_instance$visualizeResults(sentiment)
   # Evaluate the results
-  sa_instance$evaluateResults(sentimentResults)
+  sa_instance$evaluateResults(evaluation)
 }
 
 # Example usage

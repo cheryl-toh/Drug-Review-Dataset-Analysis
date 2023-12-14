@@ -132,23 +132,26 @@ TextAnalysis <-
             #  Generic Function 4: Word Cloud
             wordClouds = function(review_word_freq) {
               
+              print("Creating word cloud")
               # Open a PNG device for saving the plot
               png("word_cloud.png", width = 800, height = 600)
               
               # Word cloud for reviews
               review_cloud <- wordcloud(review_word_freq$term, review_word_freq$num,
-                                        max.words = 50, colors = "red")
-              
-              # Close the PNG device
-              dev.off()
+                                        max.words = 200, random.order=FALSE, 
+                                        colors = brewer.pal(8, "Dark2"))
               
               # View word cloud
               print(review_cloud)
               
+              # Close the PNG device
+              dev.off()
             },
             
             # Generic Function 5: Preparation for Sentiment Analysis
             prepareForSentimentAnalysis = function(data) {
+              
+              print("Plotting positive words network")
               # Filter data for positive ratings (rating > 5) and negative ratings (rating <= 5)
               positive_data <- data %>%
                 filter(rating > 5)
@@ -182,6 +185,8 @@ TextAnalysis <-
               # View positive word correlation graph
               print(positive_word_graph)
               
+              
+              print("Plotting negative word network")
               # Count number of times words are mentioned in negative ratings
               negative_counts <- negative_data %>%
                 count(word, name = "negative_mentions") %>%
@@ -234,17 +239,17 @@ TextAnalysisMain <- function(csvFilePath) {
   review_word_freq <- ta_instance$wordFrequencyAnalysis(reviews)
   print("Finish Word Frequency Analysis")
 
-  # # Perform word correlation analysis
-  # print("Start Word Correlation Analysis")
-  # ta_instance$wordCorrelationAnalysis(reviews_ratings)
-  # print("Finish Word Correlation Analysis")
+  # Perform word correlation analysis
+  print("Start Word Correlation Analysis")
+  ta_instance$wordCorrelationAnalysis(reviews_ratings)
+  print("Finish Word Correlation Analysis")
 
 
   # Create Word Clouds
   ta_instance$wordClouds(review_word_freq)
-
-  # # Prepare data for sentiment analysis
-  # ta_instance$prepareForSentimentAnalysis(reviews_ratings)
+# 
+#   # Prepare data for sentiment analysis
+#   ta_instance$prepareForSentimentAnalysis(reviews_ratings)
 }
 
 # Example usage
