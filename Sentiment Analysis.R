@@ -147,7 +147,7 @@ SentimentAnalysis <-
               subset_data$condition <- sapply(subset_data$condition, function(x) paste(x, collapse = "/"))
               
               # Save sentiment scores to CSV for descriptive analysis
-              write.csv(subset_data[, c("condition", "score", "score_result")], "sentiment_scores.csv", row.names = FALSE)
+              write.csv(subset_data[, c("condition", "review", "rating", "score", "score_result")], "sentiment_scores.csv", row.names = FALSE)
               
               # Explicitly free up memory
               gc()

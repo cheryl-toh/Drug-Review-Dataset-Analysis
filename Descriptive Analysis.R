@@ -1,75 +1,102 @@
-# Load required libraries
-library(dplyr)
+library(R6)
 library(ggplot2)
+library(gridExtra)
+library(grid)
 
-# Create Descriptive Analysis Class
-DescriptiveAnalysis <- R6Class(
-  "DescriptiveAnalysis",
-  public = list(
-    # Generic Function 1: Gather data needed (sentiment score etc)
-    gatherData = function() {
-      # Load your data from CSV or other sources
-      # Example: data <- read.csv("your_data.csv")
-      # Perform any necessary data preprocessing
-      # ...
-      return(data)
-    },
-    
-    # Generic Function 2: Descriptive Statistics
-    descriptiveStatistics = function(data) {
-      # Calculate descriptive statistics
-      stats <- summary(data$sentiment_score)
-      # Additional calculations for mean, median, sd, skewness, etc.
-      # ...
-      return(stats)
-    },
-    
-    # Generic Function 3: Compare Sentiment Scores Across Categories
-    compareCategories = function(data) {
-      # If applicable, compare sentiment scores across categories
-      # Example: boxplot(sentiment_score ~ drug_type, data = data)
-    },
-    
-    # Generic Function 4: Summary statistic
-    summaryStatistic = function(data) {
-      # Calculate and return a summary statistic
-      # ...
-    },
-    
-    # Generic Function 5: Visualization
-    visualization = function(data) {
-      # Create visualizations using ggplot2 or other libraries
-      # Example: ggplot(data, aes(x = drug_type, y = sentiment_score)) + geom_boxplot()
-    }
+# Descriptive Analysis Class
+DescriptiveAnalysis <- 
+  R6Class("DescriptiveAnalysis",
+          
+          public = list(
+            
+            # Generic Function 1: Basic Statistics
+            basicStatistics = function(sentiment_data) {
+              print("Calculating Basic Statistics")
+              
+              # Compute basic statistics on sentiment scores
+              basic_stats <- summary(sentiment_data$score)
+              
+              # Save the summary statistics as a data frame
+              basic_stats_df <- data.frame(Statistic = names(basic_stats),
+                                           Value = unclass(basic_stats),
+                                           row.names = NULL)
+              
+              
+              # Print basic statistics
+              print(basic_stats_df)
+              
+              # Create a tableGrob from basic statistics
+              table_grob <- gridExtra::tableGrob(basic_stats_df)
+              
+              # Save the table as a PNG file
+              png("basic_statistics_table.png", width = 300, height = 300)
+              grid.draw(table_grob)
+              dev.off()
+              
+              return(basic_stats)
+            },
+            
+            # Generic Function 2: Distribution Analysis
+            distributionAnalysis = function(sentiment_data) {
+              print("Performing Distribution Analysis")
+              
+              # Create a histogram of sentiment scores
+              hist_plot <- ggplot(sentiment_data, aes(x = score)) +
+                geom_histogram(binwidth = 0.1, fill = "skyblue", color = "black") +
+                ggtitle("Distribution of Sentiment Scores") +
+                xlab("Sentiment Score") +
+                ylab("Frequency")
+              
+              # Save the histogram plot as a PNG file
+              ggsave("sentiment_distribution.png", plot = hist_plot, width = 11, height = 8)
+              
+              # View the histogram plot
+              print(hist_plot)
+            },
+            
+            # Generic Function 3: Sentiment Score by Review Length (Word Count)
+            sentimentByReviewLength = function(sentiment_data, sampling_ratio = 0.2) {
+              print("Analyzing Sentiment Score by Review Length")
+              
+              # Create a new column for word count
+              sentiment_data$word_count <- sapply(strsplit(sentiment_data$review, "\\s+"), length)
+              
+              # Sample a subset of data points
+              sampled_data <- sentiment_data[sample(1:nrow(sentiment_data), size = round(sampling_ratio * nrow(sentiment_data))), ]
+              
+              # Create a scatter plot of sentiment scores by word count
+              scatter_plot <- ggplot(sampled_data, aes(x = word_count, y = score)) +
+                geom_point(alpha = 0.5, color = "darkgreen") +
+                ggtitle("Sentiment Score by Review Length (Word Count)") +
+                xlab("Review Word Count") +
+                ylab("Sentiment Score")
+              
+              # Print and save the scatter plot as a PNG file
+              print(scatter_plot)
+              ggsave("sentiment_by_word_count_scatter.png", plot = scatter_plot, width = 11, height = 8)
+            }
+            
+          )
   )
-)
 
-# Main Class for loading data from csv file and calling functions in class
-DescriptiveAnalysisMain <- function(csvFilePath) {
-  # Load data from CSV file
-  data <- read.csv(csvFilePath)
-  
+# Main Class for Descriptive Analysis
+DescriptiveAnalysisMain <- function(sentiment_data) {
   # Create an instance of the DescriptiveAnalysis class
-  analysis_instance <- DescriptiveAnalysis$new()
+  da_instance <- DescriptiveAnalysis$new()
   
-  # Gather data
-  gatheredData <- analysis_instance$gatherData()
+  # Perform basic statistics analysis
+  basic_stats <- da_instance$basicStatistics(sentiment_data)
   
-  # Descriptive Statistics
-  stats <- analysis_instance$descriptiveStatistics(gatheredData)
-  print(stats)
+  # Perform distribution analysis
+  da_instance$distributionAnalysis(sentiment_data)
+
+  # Perform sentiment score by review length analysis
+  da_instance$sentimentByReviewLength(sentiment_data)
   
-  # Compare Sentiment Scores Across Categories
-  analysis_instance$compareCategories(gatheredData)
-  
-  # Summary statistic
-  summary_stat <- analysis_instance$summaryStatistic(gatheredData)
-  print(summary_stat)
-  
-  # Visualization
-  analysis_instance$visualization(gatheredData)
+  # Return basic statistics
+  return(basic_stats)
 }
 
 # Example usage
-csvFilePath <- "./data.csv"
-DescriptiveAnalysisMain(csvFilePath)
+sentiment_data <- read.csv("./sentiment_scores.csv")  # Assuming you have sentiment scores data
+DescriptiveAnalysisMain(sentiment_data)
