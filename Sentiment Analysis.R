@@ -2,6 +2,11 @@ library(R6)
 library(dplyr)
 library(textutils)
 library(stringr)
+library(ggplot2)
+library(SentimentAnalysis)
+library(ggplot2)
+library(usethis) 
+usethis::edit_r_environ() # must set R_MAX_VSIZE=100Gb
 
 # Sentiment Analysis Class
 SentimentAnalysis <- 
@@ -106,7 +111,45 @@ SentimentAnalysis <-
             
             # Generic Function 2: Sentiment Analysis
             performSentimentAnalysis = function(data) {
-              # Implement sentiment analysis logic here
+              
+              # plotting sentiment score against ratings for correlation
+                senti_score <- senti_data$review
+                senti_rate <- senti_data$rating
+                
+                sentiment <- analyzeSentiment(senti_score) # around 3-4 mins
+                senti_data$score <- sentiment$SentimentQDAP
+                senti_data$score_result <- convertToDirection(sentiment$SentimentQDAP)
+                
+                evaluation <- data.frame(compareToResponse(sentiment, senti_rate)) 
+                senti_corr <- plotSentimentResponse(sentiment$SentimentQDAP, senti_rate)
+                ggsave("senti_corr.png", plot = senti_corr, width = 11, height = 8)
+              
+              # plotting sentiment scores distribution with conditions
+                top_conditions <- senti_data %>% group_by(condition) %>% summarise(count = n()) %>%
+                  arrange(desc(count)) %>% head(10)
+                
+                senti_top10 <- senti_data %>% filter(condition %in% top_conditions$condition)
+                senti_top10 <- senti_top10 %>% mutate(rounded_score = ifelse(score_result == "positive", ceiling(score),
+                                                                      ifelse(score_result == "negative", floor(score),
+                                                                      ifelse(score_result == "neutral", 0, NA))))
+                
+                senti_histo <-  ggplot(senti_top10, aes(x = score, fill = condition)) +
+                  geom_histogram(binwidth = 0.1, position = "dodge") +
+                  ggtitle("Sentiment Score Distribution by Medical Condition") +
+                  xlab("Sentiment Score") +
+                  ylab("Frequency") +
+                  facet_wrap(~condition, scales = "free_y")
+                
+                senti_box <-  ggplot(senti_top10, aes(x = condition, y = score)) +
+                  geom_boxplot() +
+                  ggtitle("Boxplot of Sentiment Scores by Medical Condition") +
+                  xlab("Condition") +
+                  ylab("Sentiment Score") +
+                  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+                
+                ggsave("senti_histogram.png", plot = senti_histo, width = 11, height = 8)
+                ggsave("senti_boxplot.png", plot = senti_box, width = 11, height = 8)
+              
             },
             
             # Generic Function 3: Visualization
