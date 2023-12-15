@@ -94,5 +94,5 @@ DescriptiveAnalysisMain <- function(sentiment_data) {
 }
 
 # Example usage
-sentiment_data <- read.csv("./sentiment_scores.csv")  # Assuming you have sentiment scores data
+sentiment_data <- read.csv("Dataset/sentiment_scores.csv")  # Assuming you have sentiment scores data
 DescriptiveAnalysisMain(sentiment_data)

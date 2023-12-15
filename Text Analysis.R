@@ -247,11 +247,11 @@ TextAnalysisMain <- function(csvFilePath) {
 
   # Create Word Clouds
   ta_instance$wordClouds(review_word_freq)
-# 
-#   # Prepare data for sentiment analysis
-#   ta_instance$prepareForSentimentAnalysis(reviews_ratings)
+
+  # Prepare data for sentiment analysis
+  ta_instance$prepareForSentimentAnalysis(reviews_ratings)
 }
 
 # Example usage
-csvFilePath <- "./data.csv"
+csvFilePath <- "Dataset/data.csv"
 TextAnalysisMain(csvFilePath)

@@ -16,7 +16,7 @@ df <- as.data.frame(data)
 print(head(df))
 
 # Save as csv file
-write.csv(df, file = "data.csv", row.names = FALSE)
+write.csv(df, file = "Dataset/data.csv", row.names = FALSE)
 
 
 
