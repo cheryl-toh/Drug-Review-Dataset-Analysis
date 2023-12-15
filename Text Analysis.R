@@ -1,3 +1,53 @@
+# Install packages if not already installed
+if (!requireNamespace("R6", quietly = TRUE)) {
+  install.packages("R6")
+}
+
+if (!requireNamespace("widyr", quietly = TRUE)) {
+  install.packages("widyr")
+}
+
+if (!requireNamespace("dplyr", quietly = TRUE)) {
+  install.packages("dplyr")
+}
+
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+
+if (!requireNamespace("tidyr", quietly = TRUE)) {
+  install.packages("tidyr")
+}
+
+if (!requireNamespace("tidytext", quietly = TRUE)) {
+  install.packages("tidytext")
+}
+
+if (!requireNamespace("tm", quietly = TRUE)) {
+  install.packages("tm")
+}
+
+if (!requireNamespace("rstudioapi", quietly = TRUE)) {
+  install.packages("rstudioapi")
+}
+
+if (!requireNamespace("qdapTools", quietly = TRUE)) {
+  install.packages("qdapTools")
+}
+
+if (!requireNamespace("igraph", quietly = TRUE)) {
+  install.packages("igraph")
+}
+
+if (!requireNamespace("ggraph", quietly = TRUE)) {
+  install.packages("ggraph")
+}
+
+if (!requireNamespace("wordcloud", quietly = TRUE)) {
+  install.packages("wordcloud")
+}
+
+# Load Packages
 library(tm)
 library(tidytext)
 library(dplyr)
@@ -12,11 +62,13 @@ library(ggraph)
 library(wordcloud)
 
 
+
 # Text Analysis Class
 TextAnalysis <- 
   R6Class("TextAnalysis",
           
           public = list(
+            
             
             # Generic Function 1: Data Cleaning And Pre-processing
             cleanAndPreprocessData = function(fulldata) {
@@ -148,6 +200,7 @@ TextAnalysis <-
               dev.off()
             },
             
+            
             # Generic Function 5: Preparation for Sentiment Analysis
             prepareForSentimentAnalysis = function(data) {
               
@@ -184,8 +237,7 @@ TextAnalysis <-
               
               # View positive word correlation graph
               print(positive_word_graph)
-              
-              
+
               print("Plotting negative word network")
               # Count number of times words are mentioned in negative ratings
               negative_counts <- negative_data %>%
@@ -216,6 +268,7 @@ TextAnalysis <-
             }
           )
   )
+
 
 # Main Class for loading data from CSV file and calling functions in the TextAnalysis class
 TextAnalysisMain <- function(csvFilePath) {
@@ -252,6 +305,6 @@ TextAnalysisMain <- function(csvFilePath) {
   ta_instance$prepareForSentimentAnalysis(reviews_ratings)
 }
 
-# Example usage
+# Usage
 csvFilePath <- "Dataset/data.csv"
 TextAnalysisMain(csvFilePath)

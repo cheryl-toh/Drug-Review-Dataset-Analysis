@@ -1,13 +1,34 @@
+# Install packages if not already installed
+if (!requireNamespace("R6", quietly = TRUE)) {
+  install.packages("R6")
+}
+
+if (!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+
+if (!requireNamespace("grid", quietly = TRUE)) {
+  install.packages("grid")
+}
+
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2")
+}
+
+# Load Packages
 library(R6)
 library(ggplot2)
 library(gridExtra)
 library(grid)
+
+
 
 # Descriptive Analysis Class
 DescriptiveAnalysis <- 
   R6Class("DescriptiveAnalysis",
           
           public = list(
+            
             
             # Generic Function 1: Basic Statistics
             basicStatistics = function(sentiment_data) {
@@ -33,6 +54,7 @@ DescriptiveAnalysis <-
               dev.off()
             },
             
+            
             # Generic Function 2: Distribution Analysis
             distributionAnalysis = function(sentiment_data) {
               print("Performing Distribution Analysis")
@@ -50,6 +72,7 @@ DescriptiveAnalysis <-
               # View the histogram plot
               print(hist_plot)
             },
+            
             
             # Generic Function 3: Sentiment Score by Review Length (Word Count)
             sentimentByReviewLength = function(sentiment_data, sampling_ratio = 0.2) {
@@ -92,6 +115,8 @@ DescriptiveAnalysis <-
           )
   )
 
+
+
 # Main Class for Descriptive Analysis
 DescriptiveAnalysisMain <- function(sentiment_data) {
   
@@ -109,6 +134,6 @@ DescriptiveAnalysisMain <- function(sentiment_data) {
   
 }
 
-# Example usage
+# Usage
 sentiment_data <- read.csv("Dataset/sentiment_scores.csv")  # Assuming you have sentiment scores data
 DescriptiveAnalysisMain(sentiment_data)
