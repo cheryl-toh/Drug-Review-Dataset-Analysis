@@ -7,9 +7,6 @@ library(SentimentAnalysis)
 library(ggplot2)
 library(data.table)
 
-# library(usethis)
-# usethis::edit_r_environ() # must set R_MAX_VSIZE=100Gb
-
 # Sentiment Analysis Class
 SentimentAnalysis <- 
   
@@ -22,7 +19,6 @@ SentimentAnalysis <-
               
               print("Start preprocessing")
               
-              # Convert data to data.table for efficient operations
               # Take a random sample of the data
               sampled_data <- data[sample(1:nrow(data), sample_size), ]
               
@@ -120,9 +116,9 @@ SentimentAnalysis <-
             
             # Generic Function 2: Sentiment Analysis
             performSentimentAnalysis = function(senti_data) {
-              print("Start Sentiment Analysis")
               
-              print("evaluating sentiment score")
+              print("Start Sentiment Analysis")
+
               # Subset data to include only necessary columns
               subset_data <- senti_data[, c("review", "rating", "condition")]
               
@@ -157,12 +153,17 @@ SentimentAnalysis <-
             
             # Generic Function 3: Visualization
             visualizeResults = function(sentiment_data) {
-              print("Plotting Sentiment-Ratiing Correlation")
-              senti_corr <- plotSentimentResponse(sentiment_data$score, sentiment_data$rating)
-              ggsave("senti_corr.png", plot = senti_corr, width = 11, height = 8)
               
+              print("Plotting Sentiment-Ratiing Correlation")
+              
+              # Plot sentiment - rating correlation
+              senti_corr <- plotSentimentResponse(sentiment_data$score, sentiment_data$rating)
+              ggsave("Images/senti_corr.png", plot = senti_corr, width = 11, height = 8)
+              
+              print(senti_corr)
               
               print("Plotting Sentiment Score by Medical Condition Histogram")
+              
               # plotting sentiment scores distribution with conditions
               top_conditions <- sentiment_data %>% group_by(condition) %>% summarise(count = n()) %>%
                 arrange(desc(count)) %>% head(10)
@@ -183,6 +184,7 @@ SentimentAnalysis <-
               
               senti_top10$condition <- factor(senti_top10$condition, levels = condition_order)
               
+              # Plot histogram
               senti_histo <- ggplot(senti_top10, aes(x = score, fill = condition)) +
                 geom_histogram(binwidth = 0.1, position = "dodge") +
                 ggtitle("Sentiment Score Distribution by Medical Condition") +
@@ -190,8 +192,11 @@ SentimentAnalysis <-
                 ylab("Frequency") +
                 facet_wrap(~condition, scales = "free_y")
               
+              print(senti_histo)
+              
               print("Plotting Sentiment Score by Medical Condition Boxplot")
               
+              # Plot boxplot
               senti_box <- ggplot(senti_top10, aes(x = condition, y = score)) +
                 geom_boxplot() +
                 ggtitle("Boxplot of Sentiment Scores by Medical Condition") +
@@ -199,15 +204,15 @@ SentimentAnalysis <-
                 ylab("Sentiment Score") +
                 theme(axis.text.x = element_text(angle = 45, hjust = 1))
               
-              ggsave("senti_histogram.png", plot = senti_histo, width = 11, height = 8)
-              ggsave("senti_boxplot.png", plot = senti_box, width = 11, height = 8)
+              print(senti_box)
               
-              
+              ggsave("Images/senti_histogram.png", plot = senti_histo, width = 11, height = 8)
+              ggsave("Images/senti_boxplot.png", plot = senti_box, width = 11, height = 8)
             },
             
             # Generic Function 4: Evaluation
             evaluateResults = function(results) {
-              # Implement evaluation logic here
+              
               # Print the results
               print("Evaluation Results:")
               print(results)
@@ -217,6 +222,7 @@ SentimentAnalysis <-
 
 # Main Class for loading data from CSV file and calling functions in the SentimentAnalysis class
 SentimentAnalysisMain <- function(csvFilePath) {
+  
   # Load data from CSV file
   data <- read.csv(csvFilePath)
   
@@ -226,19 +232,19 @@ SentimentAnalysisMain <- function(csvFilePath) {
   # Perform data pre-processing
   preprocessedData <- sa_instance$preprocessData(data)
   
-  print(head(preprocessedData))
-  
   # Perform sentiment analysis
   sentimentResults <- sa_instance$performSentimentAnalysis(preprocessedData)
   
   sentiment = sentimentResults$subset_data
   evaluation = sentimentResults$evaluation
   
+  # Graph plotting
   sa_instance$visualizeResults(sentiment)
+  
   # Evaluate the results
   sa_instance$evaluateResults(evaluation)
 }
 
-# Example usage
+# Usage
 csvFilePath <- "./data.csv"
 SentimentAnalysisMain(csvFilePath)

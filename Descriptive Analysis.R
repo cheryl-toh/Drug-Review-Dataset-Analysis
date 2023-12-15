@@ -20,20 +20,17 @@ DescriptiveAnalysis <-
               basic_stats_df <- data.frame(Statistic = names(basic_stats),
                                            Value = unclass(basic_stats),
                                            row.names = NULL)
-              
-              
+
               # Print basic statistics
               print(basic_stats_df)
               
-              # Create a tableGrob from basic statistics
+              # Create a table grob from basic statistics
               table_grob <- gridExtra::tableGrob(basic_stats_df)
               
               # Save the table as a PNG file
-              png("basic_statistics_table.png", width = 300, height = 300)
+              png("Images/basic_statistics_table.png", width = 300, height = 300)
               grid.draw(table_grob)
               dev.off()
-              
-              return(basic_stats)
             },
             
             # Generic Function 2: Distribution Analysis
@@ -48,7 +45,7 @@ DescriptiveAnalysis <-
                 ylab("Frequency")
               
               # Save the histogram plot as a PNG file
-              ggsave("sentiment_distribution.png", plot = hist_plot, width = 11, height = 8)
+              ggsave("Images/sentiment_distribution.png", plot = hist_plot, width = 11, height = 8)
               
               # View the histogram plot
               print(hist_plot)
@@ -73,7 +70,7 @@ DescriptiveAnalysis <-
               
               # Print and save the scatter plot as a PNG file
               print(scatter_plot)
-              ggsave("sentiment_by_word_count_scatter.png", plot = scatter_plot, width = 11, height = 8)
+              ggsave("Images/sentiment_by_word_count_scatter.png", plot = scatter_plot, width = 11, height = 8)
             }
             
           )
@@ -81,11 +78,12 @@ DescriptiveAnalysis <-
 
 # Main Class for Descriptive Analysis
 DescriptiveAnalysisMain <- function(sentiment_data) {
+  
   # Create an instance of the DescriptiveAnalysis class
   da_instance <- DescriptiveAnalysis$new()
   
   # Perform basic statistics analysis
-  basic_stats <- da_instance$basicStatistics(sentiment_data)
+  da_instance$basicStatistics(sentiment_data)
   
   # Perform distribution analysis
   da_instance$distributionAnalysis(sentiment_data)
@@ -93,8 +91,6 @@ DescriptiveAnalysisMain <- function(sentiment_data) {
   # Perform sentiment score by review length analysis
   da_instance$sentimentByReviewLength(sentiment_data)
   
-  # Return basic statistics
-  return(basic_stats)
 }
 
 # Example usage

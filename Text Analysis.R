@@ -82,7 +82,7 @@ TextAnalysis <-
                      y = "Total Frequency")
               
               # Save the plot as a PNG file
-              ggsave("word_frequency_plot.png", plot)
+              ggsave("Images/word_frequency_plot.png", plot)
               
               # View plot
               print(plot)
@@ -121,7 +121,7 @@ TextAnalysis <-
                 geom_node_text(aes(color = num_mentions, label = name), repel = TRUE)
             
               # Save the graph as a PNG file
-              ggsave("word_network_graph.png", word_graph)
+              ggsave("Images/word_network_graph.png", word_graph)
               
               # View graph
               print(word_graph)
@@ -134,7 +134,7 @@ TextAnalysis <-
               
               print("Creating word cloud")
               # Open a PNG device for saving the plot
-              png("word_cloud.png", width = 800, height = 600)
+              png("Images/word_cloud.png", width = 800, height = 600)
               
               # Word cloud for reviews
               review_cloud <- wordcloud(review_word_freq$term, review_word_freq$num,
@@ -180,7 +180,7 @@ TextAnalysis <-
                 geom_node_text(aes(color = positive_mentions, label = name), repel = TRUE)
               
               # Save the positive word correlation graph as a PNG file
-              ggsave("positive_word_network_graph.png", positive_word_graph)
+              ggsave("Images/positive_word_network_graph.png", positive_word_graph)
               
               # View positive word correlation graph
               print(positive_word_graph)
@@ -208,7 +208,7 @@ TextAnalysis <-
                 geom_node_text(aes(color = negative_mentions, label = name), repel = TRUE)
               
               # Save the negative word correlation graph as a PNG file
-              ggsave("negative_word_network_graph.png", negative_word_graph)
+              ggsave("Images/negative_word_network_graph.png", negative_word_graph)
               
               # View negative word correlation graph
               print(negative_word_graph)
