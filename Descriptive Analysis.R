@@ -55,19 +55,35 @@ DescriptiveAnalysis <-
             sentimentByReviewLength = function(sentiment_data, sampling_ratio = 0.2) {
               print("Analyzing Sentiment Score by Review Length")
               
+              ## UNCOMMENT FOR PLOT WITHOUT RANDOM SAMPLING
+              # # Create a new column for word count
+              # sentiment_data$word_count <- sapply(strsplit(sentiment_data$review, "\\s+"), length)
+              # 
+              # # Create a scatter plot of sentiment scores by word count
+              # scatter_plot <- ggplot(sentiment_data, aes(x = word_count, y = score)) +
+              #   geom_point(alpha = 0.5, color = "darkgreen") +
+              #   ggtitle("Sentiment Score by Review Length (Word Count)") +
+              #   xlab("Review Word Count") +
+              #   ylab("Sentiment Score")
+              # 
+              # # Print and save the scatter plot as a PNG file
+              # print(scatter_plot)
+              # ggsave("Images/sentiment_by_review_length.png", plot = scatter_plot, width = 11, height = 8)
+              
+              ## UNCOMMENT FOR PLOT WITH RANDOM SAMPLING
               # Create a new column for word count
               sentiment_data$word_count <- sapply(strsplit(sentiment_data$review, "\\s+"), length)
-              
+
               # Sample a subset of data points
               sampled_data <- sentiment_data[sample(1:nrow(sentiment_data), size = round(sampling_ratio * nrow(sentiment_data))), ]
-              
+
               # Create a scatter plot of sentiment scores by word count
               scatter_plot <- ggplot(sampled_data, aes(x = word_count, y = score)) +
                 geom_point(alpha = 0.5, color = "darkgreen") +
                 ggtitle("Sentiment Score by Review Length (Word Count)") +
                 xlab("Review Word Count") +
                 ylab("Sentiment Score")
-              
+
               # Print and save the scatter plot as a PNG file
               print(scatter_plot)
               ggsave("Images/sentiment_by_word_count_scatter.png", plot = scatter_plot, width = 11, height = 8)
