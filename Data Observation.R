@@ -19,12 +19,17 @@ if (!requireNamespace("stringr", quietly = TRUE)) {
   install.packages("stringr")
 }
 
+if (!requireNamespace("htmltools", quietly = TRUE)) {
+  install.packages("htmltools")
+}
+
 # Load required libraries
 library(readr)
 library(dplyr)
 library(ggplot2)
 library(stringr)
 library(tidyr)
+library(htmltools)
 
 
 
@@ -32,7 +37,7 @@ library(tidyr)
 cleanAndPreprocessData <- function(df) {
   
   # data cleaning
-  df$review <- HTMLdecode(df$review) #1-2 mins
+  df$review <- stringi::stri_trans_totitle(df$review) #1-2 mins
   
   df$condition <- ifelse(grepl("</span> users found this comment helpful", df$condition),
                                  NA, df$condition)
